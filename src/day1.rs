@@ -1,8 +1,7 @@
+#![allow(dead_code)]
 /**
  * https://adventofcode.com/2023/day/1
  */
-
-#[allow(dead_code)]
 
 pub fn part1(document: String) -> i32 {
     let mut total = 0;

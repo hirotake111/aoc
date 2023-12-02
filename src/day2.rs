@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+/**
+ * https://adventofcode.com/2023/day/2
+ */
 use std::collections::HashMap;
 
 pub fn day2(input: String) -> (usize, usize) {
