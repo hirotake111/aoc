@@ -4,7 +4,25 @@
 
 #[allow(dead_code)]
 
-pub fn func(document: String) -> i32 {
+pub fn part1(document: String) -> i32 {
+    let mut total = 0;
+    for line in document.lines() {
+        let (mut left, mut right) = (-1, 0);
+        for c in line.bytes() {
+            if c >= b'0' && c <= b'9' {
+                let c = c as i32;
+                if left == -1 {
+                    left = c - 48; // b'0'
+                }
+                right = c - 48;
+            }
+        }
+        total += left * 10 + right;
+    }
+    total
+}
+
+pub fn part2(document: String) -> i32 {
     let mut total = 0;
     for line in document.lines() {
         let l = line.len();
@@ -78,22 +96,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_func() {
-        let document = String::from(
-            "two1nine
-eightwothree
-abcone2threexyz
-xtwone3four
-4nineeightseven2
-zoneight234
-7pqrstsixteen",
-        );
-        assert_eq!(func(document), 281);
+    fn test_part1() {
+        let document = std::fs::read_to_string("input/day1_example.txt").unwrap();
+        assert_eq!(part1(document), 142);
+        let document = std::fs::read_to_string("input/day1.txt").unwrap();
+        assert_eq!(part1(document), 54990);
     }
 
     #[test]
-    fn test_func2() {
-        let document = std::fs::read_to_string("input/day1/data.txt").unwrap();
-        assert_eq!(func(document), 54473);
+    fn test_part2() {
+        let document = std::fs::read_to_string("input/day1_example2.txt").unwrap();
+        assert_eq!(part2(document), 281);
+        let document = std::fs::read_to_string("input/day1.txt").unwrap();
+        assert_eq!(part2(document), 54473);
     }
 }
