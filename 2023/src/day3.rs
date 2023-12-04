@@ -81,7 +81,7 @@ mod tests {
     fn test_day3() {
         let data = std::fs::read_to_string("input/day3_example.txt").unwrap();
         assert_eq!(day3(data), 4361);
-        // let data = std::fs::read_to_string("input/day3.txt").unwrap();
-        // assert_eq!(day3(data), 460971);
+        let data = std::fs::read_to_string("input/day3.txt").unwrap();
+        assert_eq!(day3(data), 509115);
     }
 }
