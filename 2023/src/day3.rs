@@ -1,5 +1,6 @@
 const SYMBOLS: &str = "#$%&+*@/-=";
 
+#[allow(dead_code)]
 pub fn day3(input: String) -> i32 {
     let mut total = 0;
     let numbers = "0123456789";
@@ -35,6 +36,7 @@ pub fn day3(input: String) -> i32 {
     total
 }
 
+#[allow(dead_code)]
 fn has_neighbor_symbol(p: &Vec<Vec<char>>, i: usize, left: usize, right: usize) -> bool {
     // top left
     if i > 0 && left > 0 && SYMBOLS.contains(p[i - 1][left - 1]) {

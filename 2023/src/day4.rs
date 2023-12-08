@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+#[allow(dead_code)]
 fn day4(data: String) -> (i64, i64) {
     let mut total = 0;
     let l = data.lines().count();
