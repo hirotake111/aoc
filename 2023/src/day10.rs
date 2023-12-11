@@ -1,12 +1,11 @@
 #![allow(dead_code)]
 
 use std::collections::VecDeque;
-fn part1(input: &str) -> i64 {
+fn part1(input: &str) -> (i64, usize) {
     let matrix: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
+
     let (m, n) = (matrix.len(), matrix[0].len());
-    // println!("m: {m}, n: {n}");
-    let mut seen = vec![vec![false; m]; n];
-    // let (north, east, south, west) = ((-1, 0), (0, 1), (1, 0), (0, -1));
+    let mut seen = vec![vec![false; n]; m];
 
     // Find starting point
     let mut start = (0, 0, 0);
@@ -23,7 +22,6 @@ fn part1(input: &str) -> i64 {
     let mut furthest = 0;
     let mut q = VecDeque::new();
     q.push_back(start);
-    // println!("start: {seen:?}");
     while let Some((row, col, steps)) = q.pop_front() {
         match matrix[row][col] {
             '|' => {
@@ -37,7 +35,7 @@ fn part1(input: &str) -> i64 {
                     }
                 }
                 // south
-                if row < m - 1 {
+                if row < n - 1 {
                     let (r, c) = (row + 1, col);
                     if !seen[r][c] && ['|', 'L', 'J'].contains(&matrix[r][c]) {
                         seen[r][c] = true;
@@ -169,6 +167,7 @@ fn part1(input: &str) -> i64 {
                 if row < m - 1 {
                     let (r, c) = (row + 1, col);
                     if !seen[r][c] && ['|', 'L', 'J'].contains(&matrix[r][c]) {
+                        seen[r][c] = true;
                         q.push_back((r, c, steps + 1));
                         furthest = furthest.max(steps + 1);
                     }
@@ -185,13 +184,75 @@ fn part1(input: &str) -> i64 {
             }
             _ => {}
         };
-        // print_seen(&seen);
     }
 
-    furthest
+    let mut q = VecDeque::new();
+    for i in 0..n {
+        // 1st row
+        if !seen[0][i] {
+            seen[0][i] = true;
+            q.push_back((0, i));
+        }
+        // last row
+        if !seen[m - 1][i] {
+            seen[m - 1][i] = true;
+            q.push_back((m - 1, i));
+        }
+    }
+    for i in 0..m {
+        // 1st col
+        if !seen[i][0] {
+            seen[i][0] = true;
+            q.push_back((i, 0));
+        }
+        // last col
+        if !seen[i][n - 1] {
+            seen[i][n - 1] = true;
+            q.push_back((i, n - 1));
+        }
+    }
+
+    // fill all cells that is adjacent to the walls
+    while let Some((row, col)) = q.pop_front() {
+        // north
+        if row > 0 && !seen[row - 1][col] {
+            seen[row - 1][col] = true;
+            q.push_back((row - 1, col));
+        }
+        // south
+        if row < m - 1 && !seen[row + 1][col] {
+            seen[row + 1][col] = true;
+            q.push_back((row + 1, col));
+        }
+        // east
+        if col < n - 1 && !seen[row][col + 1] {
+            seen[row][col + 1] = true;
+            q.push_back((row, col + 1));
+        }
+        // west
+        if col > 0 && !seen[row][col - 1] {
+            seen[row][col - 1] = true;
+            q.push_back((row, col - 1));
+        }
+    }
+
+    // count all false value
+    let count = seen
+        .into_iter()
+        .map(|line| line.into_iter().filter(|x| !*x))
+        .count();
+
+    (furthest, count)
 }
 
 fn print_seen(s: &Vec<Vec<bool>>) {
+    println!("====");
+    for line in s {
+        println!("{line:?}");
+    }
+}
+
+fn print_matrix(s: &Vec<Vec<char>>) {
     println!("====");
     for line in s {
         println!("{line:?}");
@@ -205,8 +266,10 @@ mod tests {
     #[test]
     fn test_part1() {
         let input = std::fs::read_to_string("input/day10_example.txt").unwrap();
-        assert_eq!(part1(&input), 8);
+        assert_eq!(part1(&input).0, 8);
         let input = std::fs::read_to_string("input/day10.txt").unwrap();
-        assert_eq!(part1(&input), 6842);
+        assert_eq!(part1(&input), (6842, 140));
+        let input = std::fs::read_to_string("input/day10_example2.txt").unwrap();
+        assert_eq!(part1(&input).1, 10);
     }
 }

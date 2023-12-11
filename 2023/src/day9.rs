@@ -116,7 +116,7 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let input = std::fs::read_to_string("input/day9_example.txt").unwrap();
+        // let input = std::fs::read_to_string("input/day9_example.txt").unwrap();
         // assert_eq!(part1(&input), Ok(114));
         let input = std::fs::read_to_string("input/day9.txt").unwrap();
         // assert_eq!(part1(&input), Ok(2043183816));
