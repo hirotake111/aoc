@@ -3,108 +3,63 @@
 use std::num::ParseIntError;
 
 fn part1(input: &str) -> Result<i64, MyError> {
-    let histories: Vec<Vec<Result<i64, ParseIntError>>> = input
+    let histories = get_data(input).or_else(|_| Err(MyError("error parsing input".to_string())))?;
+    let total = histories.iter().map(|h| func(h)).sum();
+    Ok(total)
+}
+
+fn part2(input: &str) -> Result<i64, MyError> {
+    let histories = get_data(input).or_else(|_| Err(MyError("error parsing input".to_string())))?;
+    let total = histories.iter().map(|h| func2(h)).sum();
+    Ok(total)
+}
+
+fn get_data(input: &str) -> Result<Vec<Vec<i64>>, ParseIntError> {
+    input
         .lines()
         .map(|line| {
             line.split_whitespace()
                 .map(|s| s.parse::<i64>())
-                .collect::<Vec<_>>()
+                .collect::<Result<Vec<i64>, ParseIntError>>()
         })
-        .collect();
-
-    let mut total = 0;
-    for history in histories {
-        let mut v = vec![];
-        for n in history {
-            match n {
-                Ok(n) => v.push(n),
-                Err(_) => {
-                    return Err(MyError(format!("failed to parse ")));
-                }
-            }
-        }
-        v.push(func(&v) + v.last().unwrap());
-        println!("v: {v:?}");
-        total += v.last().unwrap();
-    }
-    Ok(total)
+        .into_iter()
+        .collect()
 }
 
+/**
+ * returns value that is supposed to be connected to the given vector
+ */
 fn func(v: &Vec<i64>) -> i64 {
-    // println!("v: {v:?}");
-    if v.len() == 1 {
-        return v[0];
-    }
     let mut v2: Vec<i64> = vec![];
-    let mut subtotal = 0;
-    let mut diff: i64 = 0;
+    let mut last_value = 0;
+    let mut flag = true;
     for a in v.windows(2) {
-        diff = a[1] - a[0];
+        let diff = a[1] - a[0];
+        last_value = a[1];
         v2.push(diff);
-        subtotal += diff;
+        flag &= diff == 0;
     }
-    if subtotal == 0 {
-        0
+    if flag {
+        last_value
     } else {
-        diff + v2.last().unwrap()
+        last_value + func(&v2)
     }
 }
-fn calculate_total(input: &String, future: bool) -> i64 {
-    let sequences: Vec<Vec<i64>> = input
-        .lines()
-        .map(|line| {
-            return line
-                .split_whitespace()
-                .map(|item| item.parse().unwrap())
-                .collect();
-        })
-        .collect();
 
-    let mut total = 0;
-
-    for sequence in sequences {
-        let mut differences: Vec<Vec<i64>> = vec![sequence];
-
-        while differences
-            .iter()
-            .last()
-            .unwrap()
-            .iter()
-            .any(|diff| *diff != 0)
-        {
-            let diffs = differences
-                .last()
-                .unwrap()
-                .windows(2)
-                .map(|items| items[1] - items[0])
-                .collect();
-
-            differences.push(diffs);
-        }
-
-        println!("differences: {differences:?}");
-        if future {
-            for i in (0..differences.len() - 1).rev() {
-                let last_diff = *differences[i].last().unwrap();
-                let current_diff = *differences[i + 1].last().unwrap();
-                differences[i].push(last_diff + current_diff);
-            }
-
-            total += differences.first().unwrap().last().unwrap();
-            println!("differences: {differences:?}");
-        } else {
-            for i in (0..differences.len() - 1).rev() {
-                let last_diff = *differences[i].first().unwrap();
-                let current_diff = *differences[i + 1].first().unwrap();
-
-                differences[i].insert(0, last_diff - current_diff);
-            }
-
-            total += differences.first().unwrap().first().unwrap();
-        }
+fn func2(v: &Vec<i64>) -> i64 {
+    let mut v2: Vec<i64> = vec![];
+    let first_value = *v.first().unwrap();
+    let mut flag = true;
+    for a in v.windows(2) {
+        let diff = a[1] - a[0];
+        v2.push(diff);
+        flag &= diff == 0;
     }
-
-    return total;
+    if flag {
+        first_value
+    } else {
+        first_value - func2(&v2)
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -116,11 +71,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        // let input = std::fs::read_to_string("input/day9_example.txt").unwrap();
-        // assert_eq!(part1(&input), Ok(114));
+        let input = std::fs::read_to_string("input/day9_example.txt").unwrap();
+        assert_eq!(part1(&input), Ok(114));
+        assert_eq!(part2(&input), Ok(2));
         let input = std::fs::read_to_string("input/day9.txt").unwrap();
-        // assert_eq!(part1(&input), Ok(2043183816));
-        assert_eq!(calculate_total(&input, true), 2043183816);
-        assert_eq!(calculate_total(&input, false), 1118);
+        assert_eq!(part1(&input), Ok(2043183816));
+        assert_eq!(part2(&input), Ok(1118));
     }
 }
