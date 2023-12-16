@@ -1,2 +1,2 @@
 #[derive(Debug, PartialEq)]
-pub struct MyError<'a>(&'a str);
+pub struct MyError(pub String);
