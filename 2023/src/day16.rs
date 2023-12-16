@@ -8,12 +8,43 @@ use std::{
 pub fn part1(input: &str) -> i64 {
     let grid: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
     let (m, n) = (grid.len(), grid[0].len());
-    let seen = traverse(grid, 0, 0, Dir::Right);
+    let seen = traverse(&grid, 0, 0, Dir::Right);
     let panels = get_merged_panels(&seen, m, n);
     get_energized_panels(&panels)
 }
 
-fn traverse(grid: Vec<Vec<char>>, row: usize, col: usize, dir: Dir) -> Seen {
+pub fn part2(input: &str) -> i64 {
+    let grid: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
+    let (m, n) = (grid.len(), grid[0].len());
+    let mut max_value = 0;
+    // downward
+    for col in 0..n {
+        let seen = traverse(&grid, 0, col, Dir::Down);
+        let panels = get_merged_panels(&seen, m, n);
+        max_value = max_value.max(get_energized_panels(&panels));
+    }
+    // upward
+    for col in 0..n {
+        let seen = traverse(&grid, m - 1, col, Dir::Up);
+        let panels = get_merged_panels(&seen, m, n);
+        max_value = max_value.max(get_energized_panels(&panels));
+    }
+    // rightward
+    for row in 0..m {
+        let seen = traverse(&grid, row, 0, Dir::Right);
+        let panels = get_merged_panels(&seen, m, n);
+        max_value = max_value.max(get_energized_panels(&panels));
+    }
+    // leftward
+    for row in 0..m {
+        let seen = traverse(&grid, row, n - 1, Dir::Left);
+        let panels = get_merged_panels(&seen, m, n);
+        max_value = max_value.max(get_energized_panels(&panels));
+    }
+    max_value
+}
+
+fn traverse(grid: &Vec<Vec<char>>, row: usize, col: usize, dir: Dir) -> Seen {
     let (m, n) = (grid.len(), grid[0].len());
     // seen has 4 dimensions
     let mut seen = Seen::new(&grid);
@@ -228,5 +259,11 @@ mod tests {
     fn test_part1() {
         let input = std::fs::read_to_string("input/day16_example.txt").unwrap();
         assert_eq!(part1(&input), 46);
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = std::fs::read_to_string("input/day16_example.txt").unwrap();
+        assert_eq!(part2(&input), 51);
     }
 }
