@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 const SYMBOLS: &str = "#$%&+*@/-=";
 
 #[allow(dead_code)]
@@ -34,6 +36,60 @@ pub fn day3(input: String) -> i32 {
     }
 
     total
+}
+
+pub fn part2(input: &str) -> i64 {
+    let grid: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
+    let data = convert_matrix(&grid);
+    print_2d(&data);
+    let mut total = 0;
+    for i in 0..data.len() {
+        for j in 0..data[0].len() {
+            if data[i][j] == -1 {
+                total += get_calculated(&data, i, j);
+            }
+        }
+    }
+    total
+}
+
+fn get_calculated(matrix: &Vec<Vec<i64>>, row: usize, col: usize) -> i64 {
+    0
+}
+
+fn print_2d<T: Debug>(v: &Vec<Vec<T>>) {
+    println!("====");
+    for row in v {
+        println!("{row:?}");
+    }
+    println!("====");
+}
+fn convert_matrix(grid: &Vec<Vec<char>>) -> Vec<Vec<i64>> {
+    let (m, n) = (grid.len(), grid[0].len());
+    let mut matrix = vec![vec![0; n]; m];
+    for (idx, row) in grid.into_iter().enumerate() {
+        let mut i = 0;
+        while i < n {
+            let mut j = i;
+            while j < n && "123456789".contains(row[j]) {
+                j += 1;
+            }
+            if "123456789".contains(row[i]) && "123456789".contains(row[j - 1]) {
+                let num = row[i..j]
+                    .iter()
+                    .fold(0, |acc, cur| cur.to_digit(10).unwrap() + acc * 10)
+                    as i64;
+                for k in i..j {
+                    matrix[idx][k] = num;
+                }
+            }
+            if SYMBOLS.contains(row[i]) {
+                matrix[idx][i] = -1;
+            }
+            i = j + 1;
+        }
+    }
+    matrix
 }
 
 #[allow(dead_code)]
@@ -85,5 +141,11 @@ mod tests {
         assert_eq!(day3(data), 4361);
         let data = std::fs::read_to_string("input/day3.txt").unwrap();
         assert_eq!(day3(data), 509115);
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = std::fs::read_to_string("input/day3_example.txt").unwrap();
+        assert_eq!(part2(&input), 467835);
     }
 }
