@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::{
     cmp::Reverse,
     collections::{BinaryHeap, HashSet},
@@ -111,6 +109,7 @@ fn get_grid(input: &str) -> Vec<Vec<i64>> {
         .collect()
 }
 
+#[allow(dead_code)]
 fn print_grid(grid: &Vec<Vec<i64>>) {
     println!("====");
     for row in grid {
