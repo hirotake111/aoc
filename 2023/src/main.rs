@@ -14,4 +14,5 @@ fn main() {
     // println!("day17 part2: {}", day17::part2(&input));
     let input = read_to_string("input/day18.txt").unwrap();
     println!("day18 part1: {}", day18::part1(&input));
+    println!("day18 part2: {}", day18::part2(&input));
 }

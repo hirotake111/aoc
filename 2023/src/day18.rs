@@ -1,114 +1,42 @@
-use std::collections::{BinaryHeap, HashSet};
-
 use crate::error::MyError;
 
-const SOIL: char = '.';
-const DUG: char = '#';
-
 pub fn part1(input: &str) -> i64 {
-    let input = get_data(&input).expect("input should be valid");
-    // for data in &input {
-    // println!("{data:?}");
-    // }
-    let (row, col, m, n) = get_boundaries(&input);
-    // println!("row: {row}, col: {col}, m: {m}, n: {n}");
-    let grid = get_grid(row, col, m, n, &input);
-    let soils = get_soils(&grid);
-    (m * n) as i64 - soils
+    // link for the solution
+    // https://www.youtube.com/watch?v=bGWK76_e-LM&t=587s
+    let (vertices, b) = get_data(&input).expect("input should be valid");
+    get_area(&vertices, b)
 }
 
-fn get_soils(grid: &Vec<Vec<char>>) -> i64 {
-    let (m, n) = (grid.len(), grid[0].len());
-    let mut seen: HashSet<(usize, usize)> = HashSet::new();
-    let mut queue: BinaryHeap<(usize, usize)> = BinaryHeap::new();
-    let mut soils = 0;
-    // top row
-    for col in 0..n {
-        if grid[0][col] == SOIL && !seen.contains(&(0, col)) {
-            seen.insert((0, col));
-            queue.push((0, col));
-            soils += 1;
-        }
-    }
-    // bottom row
-    for col in 0..n {
-        if grid[m - 1][col] == SOIL && !seen.contains(&(m - 1, col)) {
-            seen.insert((m - 1, col));
-            queue.push((m - 1, col));
-            soils += 1;
-        }
-    }
-    // left column
-    for row in 0..m {
-        if grid[row][0] == SOIL && !seen.contains(&(row, 0)) {
-            seen.insert((row, 0));
-            queue.push((row, 0));
-            soils += 1;
-        }
-    }
-    // right column
-    for row in 0..m {
-        if grid[row][n - 1] == SOIL && !seen.contains(&(row, n - 1)) {
-            seen.insert((row, n - 1));
-            queue.push((row, n - 1));
-            soils += 1;
-        }
-    }
-    // println!("queue: {}, soils: {}", queue.len(), soils);
-    while let Some((row, col)) = queue.pop() {
-        for (dr, dc) in [(-1, 0), (0, 1), (1, 0), (0, -1)] {
-            let (row, col) = (row as i64 + dr, col as i64 + dc);
-            if out_of_bound(row, col, grid) {
-                continue;
-            }
-            let (row, col) = (row as usize, col as usize);
-            if grid[row][col] == DUG {
-                continue;
-            }
-            if seen.contains(&(row, col)) {
-                continue;
-            }
-            seen.insert((row, col));
-            queue.push((row, col));
-            soils += 1;
-        }
-    }
-    soils
+pub fn part2(input: &str) -> i64 {
+    let (vertices, b) = get_true_data(&input).expect("input should be valid");
+    get_area(&vertices, b)
 }
 
-fn get_grid(row: usize, col: usize, m: usize, n: usize, input: &Vec<Data>) -> Vec<Vec<char>> {
-    let mut grid = vec![vec![SOIL; n]; m];
-    grid[row][col] = DUG;
-    let (mut row, mut col) = (row as i64, col as i64);
-    for data in input {
-        let mut steps = 0;
-        while steps < data.steps {
-            (row, col) = (row + data.dir.0, col + data.dir.1);
-            grid[row as usize][col as usize] = DUG;
-            steps += 1;
-        }
+fn get_area(vertices: &Vec<(i64, i64)>, b: i64) -> i64 {
+    let mut area = 0;
+    let l = vertices.len();
+    for (i, (row, _)) in vertices.iter().enumerate() {
+        // println!("({}, {})", row, col);
+        // shoelace formula
+        //https://en.wikipedia.org/wiki/Shoelace_formula
+        let prev = (i + l - 1) % l;
+        let next = (i + 1) % l;
+        area += row * (vertices[prev].1 - vertices[next].1)
     }
-    grid
-}
-fn out_of_bound(row: i64, col: i64, grid: &Vec<Vec<char>>) -> bool {
-    let (m, n) = (grid.len() as i64, grid[0].len() as i64);
-    row < 0 || row >= m || col < 0 || col >= n
-}
-
-#[derive(Debug)]
-struct Data {
-    dir: (i64, i64),
-    steps: i64,
-    color: String,
+    area /= 2;
+    // println!("area: {}", area);
+    let i = area - b / 2 + 1;
+    i + b
 }
 
-fn get_data(input: &str) -> Result<Vec<Data>, MyError> {
-    let mut v = vec![];
+fn get_data(input: &str) -> Result<(Vec<(i64, i64)>, i64), MyError> {
+    let mut v = vec![(0, 0)];
+    let mut b = 0;
     for mut line in input.lines().map(|line| line.split_whitespace()) {
         let dir = line
             .next()
             .ok_or(MyError("failed to get dir".to_string()))?;
-        let dir = match dir {
+        let (dr, dc) = match dir {
             "R" => (0, 1),
             "L" => (0, -1),
             "U" => (-1, 0),
@@ -116,51 +44,44 @@ fn get_data(input: &str) -> Result<Vec<Data>, MyError> {
         };
         let steps = line
             .next()
-            .ok_or(MyError("failed to get steps".to_string()))?;
-        let steps = steps
-            .parse()
+            .ok_or(MyError("failed to get steps".to_string()))?
+            .parse::<i64>()
             .or(Err(MyError("failed to parse steps".to_string())))?;
-        let color = line
-            .next()
-            .and_then(|s| s.strip_prefix("("))
-            .and_then(|s| s.strip_suffix(")"))
-            .ok_or(MyError("failed to get color".to_string()))?
-            .to_string();
-        v.push(Data { dir, steps, color });
+        b += steps;
+        let (row, col) = v[v.len() - 1];
+        v.push((row + dr * steps, col + dc * steps));
     }
-    Ok(v)
+    Ok((v, b))
 }
 
-fn get_boundaries(input: &Vec<Data>) -> (usize, usize, usize, usize) {
-    let (mut u, mut d, mut r, mut l) = (0, 0, 0, 0);
-    let (mut depth, mut width) = (0, 0);
-    for data in input {
-        match data.dir {
-            (0, 1) => {
-                width += data.steps;
-                r = r.max(width);
-            }
-            (0, -1) => {
-                width -= data.steps;
-                l = l.min(width);
-            }
-            (-1, 0) => {
-                depth -= data.steps;
-                u = u.min(depth);
-            }
-            _ => {
-                depth += data.steps;
-                d = d.max(depth);
-            }
+fn get_true_data(input: &str) -> Result<(Vec<(i64, i64)>, i64), MyError> {
+    let mut v = vec![(0, 0)];
+    let mut b = 0;
+    for mut line in input.lines().map(|line| line.split_whitespace().skip(2)) {
+        let color: Vec<i64> = line
+            .next()
+            .and_then(|color| color.strip_prefix("(#"))
+            .and_then(|color| color.strip_suffix(")"))
+            .ok_or(MyError("failed getting color string".to_string()))?
+            .chars()
+            .map(|c| c.to_digit(16).unwrap_or_default() as i64)
+            .collect();
+        let mut steps = 0;
+        for i in 0..(color.len() - 1) {
+            steps = steps * 16 + color[i];
         }
+        b += steps;
+        let (dr, dc) = match color[color.len() - 1] {
+            // 0 means R, 1 means D, 2 means L, and 3 means U.
+            0 => (0, 1),
+            1 => (1, 0),
+            2 => (0, -1),
+            _ => (-1, 0),
+        };
+        let (row, col) = v[v.len() - 1];
+        v.push((row + dr * steps, col + dc * steps));
     }
-    // println!("depth: {depth}, width: {width}, (u: {u}, d: {d}), (l: {l}, r: {r})");
-    (
-        u.abs() as usize,
-        l.abs() as usize,
-        (u - d).abs() as usize + 1,
-        (l - r).abs() as usize + 1,
-    )
+    Ok((v, b))
 }
 
 #[cfg(test)]
@@ -171,5 +92,11 @@ mod tests {
     fn test_part1() {
         let input = std::fs::read_to_string("input/day18_example.txt").unwrap();
         assert_eq!(part1(&input), 62);
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = std::fs::read_to_string("input/day18_example.txt").unwrap();
+        assert_eq!(part2(&input), 952408144115);
     }
 }
