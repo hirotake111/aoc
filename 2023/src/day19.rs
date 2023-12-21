@@ -182,17 +182,13 @@ fn part_accepted(rating: &Rating, workflows: &Workflows, key: &str) -> Result<bo
         .ok_or(MyError(format!("key {} not found in workflow", key)))?;
     for rule in rules {
         match rule {
-            Rule::LabelOnly(label) => match label {
-                Label::A => {
-                    return Ok(true);
+            Rule::LabelOnly(label) => {
+                return match label {
+                    Label::A => Ok(true),
+                    Label::R => Ok(false),
+                    Label::Next(label) => part_accepted(rating, workflows, label),
                 }
-                Label::R => {
-                    return Ok(false);
-                }
-                Label::Next(label) => {
-                    return part_accepted(rating, workflows, label);
-                }
-            },
+            }
             Rule::Condition(category, min, max, label) => {
                 let value = match category {
                     Category::X => rating.x,
@@ -202,17 +198,11 @@ fn part_accepted(rating: &Rating, workflows: &Workflows, key: &str) -> Result<bo
                 };
                 if value > *min && value < *max {
                     // got to next
-                    match label {
-                        Label::A => {
-                            return Ok(true);
-                        }
-                        Label::R => {
-                            return Ok(false);
-                        }
-                        Label::Next(label) => {
-                            return part_accepted(rating, workflows, label);
-                        }
-                    }
+                    return match label {
+                        Label::A => Ok(true),
+                        Label::R => Ok(false),
+                        Label::Next(label) => part_accepted(rating, workflows, label),
+                    };
                 }
             }
         }
