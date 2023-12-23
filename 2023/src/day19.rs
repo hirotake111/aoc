@@ -4,9 +4,9 @@ use crate::error::MyError;
 
 pub fn part1(input: &str) -> i64 {
     let (workflows, ratings) = get_data(input).expect("failed to get data out of input");
-    for w in &workflows {
-        println!("{:?}", w);
-    }
+    // for w in &workflows {
+    // println!("{:?}", w);
+    // }
     let mut total = 0;
     for r in &ratings {
         // println!("{:?}", r);

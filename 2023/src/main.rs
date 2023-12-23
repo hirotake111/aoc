@@ -6,6 +6,7 @@ use std::fs::read_to_string;
 use aoc::day18;
 use aoc::day19;
 use aoc::day20;
+use aoc::day21;
 
 fn main() {
     // let input = read_to_string("input/day15.txt").unwrap();
@@ -24,4 +25,6 @@ fn main() {
     println!("day19 part1: {}", day19::part1(&input));
     let input = read_to_string("input/day20.txt").unwrap();
     println!("day20 part1: {}", day20::part1(&input, 1000));
+    let input = read_to_string("input/day21.txt").unwrap();
+    println!("day21 part1: {}", day21::part1(&input, 64));
 }
