@@ -7,6 +7,7 @@ use aoc::day18;
 use aoc::day19;
 use aoc::day20;
 use aoc::day21;
+use aoc::day23;
 
 fn main() {
     // let input = read_to_string("input/day15.txt").unwrap();
@@ -27,4 +28,6 @@ fn main() {
     println!("day20 part1: {}", day20::part1(&input, 1000));
     let input = read_to_string("input/day21.txt").unwrap();
     println!("day21 part1: {}", day21::part1(&input, 64));
+    let input = read_to_string("input/day23.txt").unwrap();
+    println!("day23 part1: {}", day23::part1(&input));
 }
