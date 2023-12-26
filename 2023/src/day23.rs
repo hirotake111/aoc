@@ -1,16 +1,42 @@
-use std::{collections::VecDeque, fmt::Debug};
+use std::{collections::VecDeque, fmt::Display};
 
 pub fn part1(input: &str) -> i32 {
-    let mut longest = 0;
     let grid = get_grid(input);
+    traverse(grid)
+}
+
+pub fn part2(input: &str) -> i32 {
+    let mut grid = get_grid(input);
+    flatten(&mut grid);
+    traverse(grid)
+}
+
+fn flatten(grid: &mut Vec<Vec<char>>) {
+    let (m, n) = (grid.len(), grid[0].len());
+    for i in 0..m {
+        for j in 0..n {
+            if grid[i][j] == '^' || grid[i][j] == '<' || grid[i][j] == '>' || grid[i][j] == 'v' {
+                grid[i][j] = '.';
+            }
+        }
+    }
+}
+
+fn traverse(mut grid: Vec<Vec<char>>) -> i32 {
+    let mut longest = 0;
     let (m, n) = (grid.len() as i32, grid[0].len() as i32);
-    // print_grid(&grid);
-    let mut seen = get_seen(&grid);
-    seen[0][1] = true;
-    // print_grid(&seen);
-    let mut queue: VecDeque<(i32, i32, i32, Vec<Vec<bool>>)> = VecDeque::new();
-    queue.push_back((0, 1, 0, seen));
-    while let Some((r, c, steps, mut seen)) = queue.pop_front() {
+    grid[0][1] = 'O';
+
+    let mut queue: VecDeque<(i32, i32, i32, Vec<Vec<char>>)> = VecDeque::new();
+    queue.push_back((0, 1, 0, grid));
+    while let Some((r, c, steps, mut grid)) = queue.pop_front() {
+        if r as i32 == m - 1 && c as i32 == n - 2 {
+            if steps > longest {
+                longest = steps;
+                println!("longest: {longest}");
+            }
+            continue;
+        }
         let mut availables = vec![];
         for (dr, dc, arrow) in [(-1, 0, '^'), (0, 1, '>'), (1, 0, 'v'), (0, -1, '<')] {
             let (x, y) = (r + dr, c + dc);
@@ -18,10 +44,7 @@ pub fn part1(input: &str) -> i32 {
                 continue;
             }
             let (x, y) = (x as usize, y as usize);
-            if x as i32 == m - 1 && y as i32 == n - 2 {
-                longest = longest.max(steps + 1);
-            }
-            if seen[x][y] || grid[x][y] == '#' {
+            if grid[x][y] == 'O' || grid[x][y] == '#' {
                 continue;
             }
             if grid[x][y] == '.' || grid[x][y] == arrow {
@@ -29,39 +52,36 @@ pub fn part1(input: &str) -> i32 {
             }
         }
         match availables.len() {
+            0 => {}
             1 => {
                 let (r, c) = availables[0];
-                seen[r][c] = true;
-                queue.push_back((r as i32, c as i32, steps + 1, seen));
+                grid[r][c] = 'O';
+                queue.push_back((r as i32, c as i32, steps + 1, grid));
             }
-            2 => {
-                let mut copied = seen.clone();
-                let (r, c) = availables[0];
-                seen[r][c] = true;
-                queue.push_back((r as i32, c as i32, steps + 1, seen));
-                let (r, c) = availables[1];
-                copied[r][c] = true;
-                queue.push_back((r as i32, c as i32, steps + 1, copied));
+            _ => {
+                for (r, c) in availables {
+                    let mut copied = grid.clone();
+                    if copied[r][c] != 'O' {
+                        copied[r][c] = 'O';
+                        queue.push_back((r as i32, c as i32, steps + 1, copied));
+                    }
+                }
             }
-            _ => {}
         }
     }
     longest
 }
-
 fn get_grid(input: &str) -> Vec<Vec<char>> {
     input.lines().map(|line| line.chars().collect()).collect()
 }
 
-fn print_grid<T: Debug>(grid: &Vec<Vec<T>>) {
+fn print_grid<T: Display>(grid: &Vec<Vec<T>>) {
     for row in grid {
-        println!("{:?}", row);
+        for c in row {
+            print!("{}", c);
+        }
+        println!("");
     }
-}
-
-fn get_seen(grid: &Vec<Vec<char>>) -> Vec<Vec<bool>> {
-    let (m, n) = (grid.len(), grid[0].len());
-    (0..m).map(|_| (0..n).map(|_| false).collect()).collect()
 }
 
 #[cfg(test)]
@@ -72,5 +92,11 @@ mod tests {
     fn test_part1() {
         let input = std::fs::read_to_string("input/day23_example.txt").unwrap();
         assert_eq!(part1(&input), 94);
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = std::fs::read_to_string("input/day23_example.txt").unwrap();
+        assert_eq!(part2(&input), 154);
     }
 }
